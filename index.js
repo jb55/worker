@@ -4,6 +4,7 @@
  */
 
 var Emitter = require('emitter');
+var workerify = require('workerify');
 var WebWorker = window.Worker;
 
 /**
@@ -13,9 +14,20 @@ var WebWorker = window.Worker;
 module.exports = Worker;
 
 /**
+ * Return a Worker given a script string or a function
+ *
+ * @param {String|Function} script
+ * @api private
+ */
+function parse(script) {
+  if (typeof script !== 'function') return new WebWorker(script);
+  return workerify(script);
+}
+
+/**
  * Initialize a new `Worker` with `script`.
  *
- * @param {String} script
+ * @param {String|Function} script
  * @api public
  */
 
@@ -23,7 +35,7 @@ function Worker(script) {
   var self = this;
   this.ids = 0;
   this.script = script;
-  this.worker = new WebWorker(script);
+  this.worker = parse(script);
   this.worker.addEventListener('message', this.onmessage.bind(this));
   this.worker.addEventListener('error', this.onerror.bind(this));
 }
